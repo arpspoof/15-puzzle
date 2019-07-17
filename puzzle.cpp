@@ -26,12 +26,6 @@ PuzzleStateStorage PuzzleState::getStorage() {
 	return state;
 }
 
-Puzzle::Puzzle(int n) :n(n), nn(n * n), zeroPos(0) {
-	for (int i = 0; i < nn; i++) {
-		state.set(i, i);
-	}
-}
-
 Puzzle::Puzzle(int n, int *permutation) :n(n), nn(n * n), zeroPos(-1) {
 	for (int i = 0; i < nn; i++) {
 		state.set(i, permutation[i]);
@@ -86,4 +80,31 @@ void Puzzle::move(char op) {
 	case 'r':
 		return state.exchange(zeroPos, zeroPos + 1);
 	}
+}
+
+bool Puzzle::isInGoalState() {
+	switch (n) {
+	case 4:
+		return state.getStorage() == GOAL_4;
+	case 3:
+		return state.getStorage() == GOAL_3;
+	default:
+		assert(false);
+	}
+}
+
+bool Puzzle::isSolvable() {
+	vector<int> nums(nn);
+	for (int i = 0; i < nn; i++) {
+		nums[i] = state.get(i);
+	}
+	int nInversions = 0;
+	for (int i = 0; i < nn; i++) {
+		for (int j = i + 1; j < nn; j++) {
+			if (nums[j] < nums[i]) {
+				nInversions++;
+			}
+		}
+	}
+	return nInversions & 1 == 0;
 }
