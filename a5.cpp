@@ -2,11 +2,19 @@
 //
 
 #include "a5.h"
+#include "puzzle.h"
 
 using namespace std;
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	PuzzleState state;
+	for (int i = 0; i < 16; i++) {
+		state.set(15 - i, i);
+	}
+	for (int i = 0; i < 16; i++) {
+		cout << state.get(i) << endl;
+	}
+	system("pause");
 	return 0;
 }
