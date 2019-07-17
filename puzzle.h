@@ -16,6 +16,7 @@ public:
 	int get(int i);
 	void set(int i, int v);
 	void exchange(int i, int j);
+	PuzzleStateStorage getStorage();
 };
 
 class Puzzle {
@@ -26,6 +27,10 @@ public:
 	int n;
 	Puzzle(int n);
 	Puzzle(int n, int *permutation);
+public:
+	// test whether can move blank(0) u/d/l/r
+	bool canMove(char op);
+	void move(char op);
 private:
 	bool isValid();
 };
