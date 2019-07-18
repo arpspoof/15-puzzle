@@ -30,7 +30,6 @@ public:
 	PuzzleState state;
 	Puzzle(int n, int *permutation);
 public:
-	// test whether can move blank(0) u/d/l/r
 	bool canMove(char op);
 	void move(char op);
 	bool isInGoalState();

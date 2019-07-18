@@ -68,7 +68,9 @@ int main()
 		assert(p.isSolvable());
 		SearchResult res = IDA(p, manhattan);
 		assert(res.length == ans);
-		printf("solved problem %d, solution = %d\n", counter++, res.length);
+		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n", 
+			counter++, res.length, res.nIterations, 
+			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
 	}
 
 	system("pause");
