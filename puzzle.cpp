@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Puzzle::Puzzle(int n, int *permutation) :n(n), nn(n * n), emptyPos(-1) {
+Puzzle::Puzzle(int n, const int *permutation) :n(n), nn(n * n), emptyPos(-1) {
 	for (int i = 0; i < nn; i++) {
 		state.set(i, permutation[i]);
 		if (permutation[i] == nn - 1) {
@@ -101,7 +101,7 @@ bool Puzzle::isSolvable() const {
 	return (nInversions & 1) == 0;
 }
 
-bool Puzzle::verifySolution(char *ops) const {
+bool Puzzle::verifySolution(const char *ops) const {
 	Puzzle copy(*this);
 	while (*ops != 0) {
 		copy.move(*ops);

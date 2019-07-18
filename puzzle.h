@@ -15,13 +15,13 @@ class Puzzle {
 public:
 	int n;
 	PuzzleState state;
-	Puzzle(int n, int *permutation);
+	Puzzle(int n, const int *permutation);
 public:
 	bool canMove(char op) const;
 	void move(char op);
 	bool isInGoalState() const;
 	bool isSolvable() const;
-	bool verifySolution(char *ops) const;
+	bool verifySolution(const char *ops) const;
 private:
 	bool isValid() const;
 };
