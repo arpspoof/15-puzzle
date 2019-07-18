@@ -2,7 +2,7 @@
 
 #include "puzzle.h"
 
-typedef int (*Heuristic)(PuzzleState state);
+typedef int (*Heuristic)(Puzzle state);
 
 struct SearchResult
 {

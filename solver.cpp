@@ -31,7 +31,7 @@ static char getOppositeOperation(char op) {
 }
 
 int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
-	int estimatedCostCurrent = lengthToCurrentState + h(p.state);
+	int estimatedCostCurrent = lengthToCurrentState + h(p);
 	if (estimatedCostCurrent > maxSearchLength) {
 		return estimatedCostCurrent;
 	}
@@ -70,7 +70,7 @@ SearchResult IDA(Puzzle p, Heuristic h) {
 	pathPointer = 0;
 	memset(path, 0, sizeof(path));
 
-	maxSearchLength = h(p.state);
+	maxSearchLength = h(p);
 
 	exploredSet.clear();
 	exploredSet.insert(p.state.getStorage());

@@ -7,27 +7,6 @@
 
 using namespace std;
 
-PuzzleState::PuzzleState() :state(0) {
-}
-
-int PuzzleState::get(int i) {
-	return (state >> (i * ELEMENT_BITS)) & (PuzzleStateStorage)ELEMENT_MASK;
-}
-
-void PuzzleState::set(int i, int v) {
-	state ^= (PuzzleStateStorage)((v & ELEMENT_MASK) ^ get(i)) << (i * ELEMENT_BITS);
-}
-
-void PuzzleState::exchange(int i, int j) {
-	int xi = get(i), xj = get(j);
-	set(i, xj);
-	set(j, xi);
-}
-
-PuzzleStateStorage PuzzleState::getStorage() {
-	return state;
-}
-
 Puzzle::Puzzle(int n, int *permutation) :n(n), nn(n * n), emptyPos(-1) {
 	for (int i = 0; i < nn; i++) {
 		state.set(i, permutation[i]);
@@ -38,7 +17,7 @@ Puzzle::Puzzle(int n, int *permutation) :n(n), nn(n * n), emptyPos(-1) {
 	assert(isValid());
 }
 
-bool Puzzle::isValid() {
+bool Puzzle::isValid() const {
 	vector<int> mp(nn, 0);
 	for (int i = 0; i < nn; i++) {
 		int element = state.get(i);
@@ -54,7 +33,7 @@ static bool within(int x, int low, int high) {
 	return x >= low && x < high;
 }
 
-bool Puzzle::canMove(char op) {
+bool Puzzle::canMove(char op) const {
 	switch (op) {
 	case 'u':
 		return within(emptyPos, n, nn);
@@ -92,7 +71,7 @@ void Puzzle::move(char op) {
 	}
 }
 
-bool Puzzle::isInGoalState() {
+bool Puzzle::isInGoalState() const {
 	switch (n) {
 	case 4:
 		return state.getStorage() == GOAL_4;
@@ -101,9 +80,10 @@ bool Puzzle::isInGoalState() {
 	default:
 		assert(false);
 	}
+	return false;
 }
 
-bool Puzzle::isSolvable() {
+bool Puzzle::isSolvable() const {
 	vector<int> nums(nn);
 	for (int i = 0; i < nn; i++) {
 		nums[i] = state.get(i);
@@ -121,7 +101,7 @@ bool Puzzle::isSolvable() {
 	return (nInversions & 1) == 0;
 }
 
-bool Puzzle::verifySolution(char *ops) {
+bool Puzzle::verifySolution(char *ops) const {
 	Puzzle copy(*this);
 	while (*ops != 0) {
 		copy.move(*ops);

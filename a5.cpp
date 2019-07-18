@@ -4,6 +4,7 @@
 #include "a5.h"
 #include "puzzle.h"
 #include "solver.h"
+#include "bit_blocks.h"
 
 #include <cassert>
 #include <string>
@@ -11,10 +12,10 @@
 
 using namespace std;
 
-int manhattan(PuzzleState state) {
+int manhattan(Puzzle p) {
 	int value = 0;
 	for (int i = 0; i < 9; i++) {
-		int element = state.get(i);
+		int element = p.state.get(i);
 		if (element == 8) {
 			continue;
 		}
@@ -31,7 +32,7 @@ char getC(int v) {
 }
 
 void display(Puzzle& p) {
-	PuzzleState s = p.state;
+	auto s = p.state;
 	printf("%c %c %c\n%c %c %c\n%c %c %c\n\n",
 		getC(s.get(0)), getC(s.get(1)), getC(s.get(2)),
 		getC(s.get(3)), getC(s.get(4)), getC(s.get(5)), 
@@ -50,6 +51,13 @@ int main()
 		char *path = res.path;
 		assert(p.verifySolution(path));
 	}*/
+
+	BitBlock<unsigned long long, 5, 31> test; 
+	test.set(5, 31);
+	test.set(7, 20);
+	printf("%d,%d\n", test.get(5), test.get(7));
+	test.exchange(5, 7);
+	printf("%d,%d,%d\n", test.get(5), test.get(7), test.get(8));
 
 	int nums[9] = { 0 };
 	int ans = -1;
