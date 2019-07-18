@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -40,7 +41,7 @@ void display(Puzzle& p) {
 
 int main()
 {
-	PuzzleState s;
+/*	PuzzleState s;
 	for (int i = 0; i < 10000; i++) {
 		Puzzle p = getRandomPuzzle(3);
 		assert(p.isSolvable());
@@ -48,6 +49,26 @@ int main()
 		printf("solved problem %d, solution = %d\n", i, res.length);
 		char *path = res.path;
 		assert(p.verifySolution(path));
+	}*/
+
+	int nums[9] = { 0 };
+	int ans = -1;
+	int counter = 0;
+	ifstream input("E:/teset.csv");
+	while (input >> nums[0]) {
+		for (int i = 1; i < 9; i++) {
+			input >> nums[i];
+		}
+		input >> ans;
+		for (int i = 0; i < 9; i++) {
+			if (nums[i] == 0) nums[i] = 8;
+			else nums[i]--;
+		}
+		Puzzle p(3, nums);
+		assert(p.isSolvable());
+		SearchResult res = IDA(p, manhattan);
+		assert(res.length == ans);
+		printf("solved problem %d, solution = %d\n", counter++, res.length);
 	}
 
 	system("pause");
