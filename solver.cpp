@@ -12,7 +12,7 @@ static const int INF = 0x7FFFFFFF;
 static char path[256] = { 0 };
 static char operationList[] = { 'u','d','l','r' };
 
-static int goalLength = -1;
+static int maxSearchLength = -1;
 static int pathPointer = 0;
 static unordered_set<PuzzleStateStorage> exploredSet;
 
@@ -27,13 +27,12 @@ static char getOppositeOperation(char op) {
 	return '\0';
 }
 
-int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState, int maxLength) {
+int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 	int estimatedCostCurrent = lengthToCurrentState + h(p.state);
-	if (estimatedCostCurrent > maxLength) {
+	if (estimatedCostCurrent > maxSearchLength) {
 		return estimatedCostCurrent;
 	}
 	if (p.isInGoalState()) {
-		goalLength = lengthToCurrentState;
 		return GOAL_NODE;
 	}
 	int minEstimatedCost = INF;
@@ -49,7 +48,7 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState, int maxLength) {
 		if (exploredSet.find(newStateHash) == exploredSet.end()) {
 			exploredSet.insert(newStateHash);
 			path[pathPointer++] = op;
-			int estimatedCostChild = IDA(p, h, lengthToCurrentState + 1, maxLength);
+			int estimatedCostChild = IDA(p, h, lengthToCurrentState + 1);
 			if (estimatedCostChild == GOAL_NODE) {
 				return GOAL_NODE;
 			}
@@ -66,18 +65,16 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState, int maxLength) {
 }
 
 SearchResult IDA(Puzzle p, Heuristic h) {
-	goalLength = -1;
+	pathPointer = 0;
 	memset(path, 0, sizeof(path));
 
-	int maxSearchLength = h(p.state);
-	int code;
+	maxSearchLength = h(p.state);
+
+	exploredSet.clear();
+	exploredSet.insert(p.state.getStorage());
 
 	while (1) {
-		pathPointer = 0;
-		exploredSet.clear();
-		exploredSet.insert(p.state.getStorage());
-
-		code = IDA(p, h, 0, maxSearchLength);
+		int code = IDA(p, h, 0);
 		assert(code != INF);
 
 		if (code == GOAL_NODE) break;
@@ -85,7 +82,7 @@ SearchResult IDA(Puzzle p, Heuristic h) {
 	}
 
 	SearchResult res;
-	res.length = goalLength;
+	res.length = pathPointer;
 	res.path = path;
 	return res;
 }
