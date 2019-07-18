@@ -5,6 +5,7 @@
 #include "puzzle.h"
 #include "solver.h"
 #include "bit_blocks.h"
+#include "index.h"
 
 #include <cassert>
 #include <string>
@@ -52,12 +53,17 @@ int main()
 		assert(p.verifySolution(path));
 	}*/
 
-	BitBlock<unsigned long long, 5, 31> test; 
-	test.set(5, 31);
-	test.set(7, 20);
-	printf("%d,%d\n", test.get(5), test.get(7));
-	test.exchange(5, 7);
-	printf("%d,%d,%d\n", test.get(5), test.get(7), test.get(8));
+	PermutationIndex id(8);
+	for (int i = 0; i < 24; i++) {
+		auto permu = id.getPermutation(i);
+		printf("%d %d %d %d\n", permu.get(4), permu.get(7), permu.get(5), permu.get(6));
+	}
+
+	CombinationIndex<3> cb(6, 3);
+	for (int i = 0; i < 20; i++) {
+		auto combi = cb.getCombination(i);
+		printf("%d %d %d\n", combi.get(0), combi.get(1), combi.get(2));
+	}
 
 	int nums[9] = { 0 };
 	int ans = -1;

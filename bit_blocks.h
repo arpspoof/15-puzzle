@@ -1,7 +1,10 @@
 #pragma once
 
-template <typename TStorage, int blockSize, int elementMask> class BitBlock {
-private:
+template <
+	typename TStorage, 
+	int blockSize, 
+	int elementMask = (1 << blockSize) - 1> 
+class BitBlock {
 	TStorage storage;
 public:
 	BitBlock() :storage(0) {
