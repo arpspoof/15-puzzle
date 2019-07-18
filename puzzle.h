@@ -24,10 +24,10 @@ public:
 
 class Puzzle {
 	int nn;
-	int zeroPos;
-	PuzzleState state;
+	int emptyPos;
 public:
 	int n;
+	PuzzleState state;
 	Puzzle(int n, int *permutation);
 public:
 	// test whether can move blank(0) u/d/l/r
@@ -35,6 +35,9 @@ public:
 	void move(char op);
 	bool isInGoalState();
 	bool isSolvable();
+	bool verifySolution(char *ops);
 private:
 	bool isValid();
 };
+
+Puzzle getRandomPuzzle(int n);

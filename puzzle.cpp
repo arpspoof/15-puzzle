@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <vector>
+#include <algorithm>
+#include <random>
 
 using namespace std;
 
@@ -26,11 +28,11 @@ PuzzleStateStorage PuzzleState::getStorage() {
 	return state;
 }
 
-Puzzle::Puzzle(int n, int *permutation) :n(n), nn(n * n), zeroPos(-1) {
+Puzzle::Puzzle(int n, int *permutation) :n(n), nn(n * n), emptyPos(-1) {
 	for (int i = 0; i < nn; i++) {
 		state.set(i, permutation[i]);
-		if (permutation[i] == 0) {
-			zeroPos = i;
+		if (permutation[i] == nn - 1) {
+			emptyPos = i;
 		}
 	}
 	assert(isValid());
@@ -49,19 +51,19 @@ bool Puzzle::isValid() {
 }
 
 static bool within(int x, int low, int high) {
-	return x >> low && x < high;
+	return x >= low && x < high;
 }
 
 bool Puzzle::canMove(char op) {
 	switch (op) {
 	case 'u':
-		return within(zeroPos, n, nn);
+		return within(emptyPos, n, nn);
 	case 'd':
-		return within(zeroPos, 0, nn - n);
+		return within(emptyPos, 0, nn - n);
 	case 'l':
-		return within(zeroPos % n, 1, n);
+		return within(emptyPos % n, 1, n);
 	case 'r':
-		return within(zeroPos % n, 0, n - 1);
+		return within(emptyPos % n, 0, n - 1);
 	default:
 		assert(false);
 	}
@@ -72,13 +74,21 @@ void Puzzle::move(char op) {
 	assert(canMove(op));
 	switch (op) {
 	case 'u':
-		return state.exchange(zeroPos, zeroPos - n);
+		state.exchange(emptyPos, emptyPos - n);
+		emptyPos = emptyPos - n;
+		break;
 	case 'd':
-		return state.exchange(zeroPos, zeroPos + n);
+		state.exchange(emptyPos, emptyPos + n);
+		emptyPos = emptyPos + n;
+		break;
 	case 'l':
-		return state.exchange(zeroPos, zeroPos - 1);
+		state.exchange(emptyPos, emptyPos - 1);
+		emptyPos = emptyPos - 1;
+		break;
 	case 'r':
-		return state.exchange(zeroPos, zeroPos + 1);
+		state.exchange(emptyPos, emptyPos + 1);
+		emptyPos = emptyPos + 1;
+		break;
 	}
 }
 
@@ -100,11 +110,46 @@ bool Puzzle::isSolvable() {
 	}
 	int nInversions = 0;
 	for (int i = 0; i < nn; i++) {
+		if (nums[i] == nn - 1) continue;
 		for (int j = i + 1; j < nn; j++) {
+			if (nums[j] == nn - 1) continue;
 			if (nums[j] < nums[i]) {
 				nInversions++;
 			}
 		}
 	}
-	return nInversions & 1 == 0;
+	return (nInversions & 1) == 0;
+}
+
+bool Puzzle::verifySolution(char *ops) {
+	Puzzle copy(*this);
+	while (*ops != 0) {
+		copy.move(*ops);
+		ops++;
+	}
+	return copy.isInGoalState();
+}
+
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+Puzzle getRandomPuzzle(int n) {
+	int nn = n * n;
+	vector<pair<double, int>> ar;
+	while (true) {
+		ar.clear();
+		for (int i = 0; i < nn; i++) {
+			ar.push_back(make_pair(dist(mt), i));
+		}
+		sort(ar.begin(), ar.end());
+		vector<int> nums;
+		for (int i = 0; i < nn; i++) {
+			nums.push_back(ar[i].second);
+		}
+		Puzzle p(n, nums.data());
+		if (p.isSolvable()) {
+			return p;
+		}
+	}
 }
