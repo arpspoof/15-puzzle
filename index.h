@@ -15,12 +15,12 @@ constexpr int factorialMap[] = {
 
 class PermutationIndex {
 	int n;
-	BitBlock<int, 3> *permutationMap;
+	std::vector<BitBlock<int, 3>> permutationMap;
 	std::unordered_map<int, int> indexMap;
 public:
 	PermutationIndex(int n) :n(n) {
 		assert(n >= 1 && n <= MAX_PERMUTATION_N);
-		permutationMap = new BitBlock<int, 3>[factorialMap[n]];
+		permutationMap = std::vector<BitBlock<int, 3>>(factorialMap[n]);
 
 		int a[MAX_PERMUTATION_N];
 		for (int i = 0; i < n; i++) {
@@ -35,9 +35,6 @@ public:
 			std::next_permutation(a, a + n);
 		}
 	}
-	~PermutationIndex() {
-		delete[] permutationMap;
-	}
 	const BitBlock<int, 3>& getPermutation(int index) const {
 		return permutationMap[index];
 	}
@@ -48,9 +45,10 @@ public:
 
 template <int blockSize> class CombinationIndex {
 	int n, r;
-	BitBlock<int, blockSize> *combinationMap;
+	std::vector<BitBlock<int, blockSize>> combinationMap;
 	std::unordered_map<int, int> indexMap;
 public:
+	CombinationIndex() {}
 	CombinationIndex(int n, int r) :n(n), r(r) {
 		assert((int)ceil(log2(n)) * r <= 32);
 
@@ -58,7 +56,7 @@ public:
 		for (int i = n; i > n - r; i--) {
 			nPr *= i;
 		}
-		combinationMap = new BitBlock<int, blockSize>[nPr / factorialMap[r]];
+		combinationMap = std::vector<BitBlock<int, blockSize>>(nPr / factorialMap[r]);
 
 		int index = 0;
 		std::vector<int> chosenList;
@@ -81,6 +79,7 @@ private:
 			for (int i = 0; i < r; i++) {
 				combinationMap[index].set(i, chosenList[i]);
 			}
+			indexMap[combinationMap[index].getStorage()] = index;
 			index++;
 			return;
 		}

@@ -6,6 +6,7 @@
 #include "solver.h"
 #include "bit_blocks.h"
 #include "index.h"
+#include "dpd.h"
 
 #include <cassert>
 #include <string>
@@ -41,6 +42,15 @@ void display(Puzzle& p) {
 	);
 }
 
+void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
+	printf("computing %s ...\n", name);
+	dpd.compute();
+	printf("computing %s done, writing to file ...\n", name);
+	string path = "E:/" + string(name) + ".db";
+	dpd.storeToFile(path.c_str());
+	printf("writing to file done\n");
+}
+
 int main()
 {
 /*	PuzzleState s;
@@ -53,17 +63,61 @@ int main()
 		assert(p.verifySolution(path));
 	}*/
 
-	PermutationIndex id(8);
-	for (int i = 0; i < 24; i++) {
-		auto permu = id.getPermutation(i);
-		printf("%d %d %d %d\n", permu.get(4), permu.get(7), permu.get(5), permu.get(6));
+/*	vector<int> tileGroup1{ 0, 1, 4, 5 };
+	vector<int> tileGroup2{ 8, 9, 12, 13, 14 };
+	vector<int> tileGroup3{ 2, 3, 6, 7, 10, 11 };
+	DisjointPatternDB dpd1w(4, tileGroup1);
+	DisjointPatternDB dpd2w(4, tileGroup2);
+	DisjointPatternDB dpd3w(4, tileGroup3);
+	computeAndStoreDB("15puzzle-test-db1", dpd1w);
+	computeAndStoreDB("15puzzle-test-db2", dpd2w);
+	computeAndStoreDB("15puzzle-test-db3", dpd3w);
+	DisjointPatternDB dpd1r(4, tileGroup1);
+	DisjointPatternDB dpd2r(4, tileGroup2);
+	DisjointPatternDB dpd3r(4, tileGroup3);
+	dpd1r.readFromFile("E:/15puzzle-test-db1.db");
+	dpd2r.readFromFile("E:/15puzzle-test-db2.db");
+	dpd3r.readFromFile("E:/15puzzle-test-db3.db");
+	for (int i = 0; i < (int)dpd1r.db.size(); i++) {
+		if (dpd1r.db[i] != dpd1w.db[i]) {
+			printf("error founded in db1:%d!\n", i);
+		}
 	}
+	for (int i = 0; i < (int)dpd2r.db.size(); i++) {
+		if (dpd2r.db[i] != dpd2w.db[i]) {
+			printf("error founded in db2:%d!\n", i);
+		}
+	}
+	for (int i = 0; i < (int)dpd3r.db.size(); i++) {
+		if (dpd3r.db[i] != dpd3w.db[i]) {
+			printf("error founded in db3:%d!\n", i);
+		}
+	}*/
 
-	CombinationIndex<3> cb(6, 3);
-	for (int i = 0; i < 20; i++) {
-		auto combi = cb.getCombination(i);
-		printf("%d %d %d\n", combi.get(0), combi.get(1), combi.get(2));
+	/*vector<int> tmp{ 14, 1, 15, 6, 3, 5, 2, 11, 8, 0, 12, 13, 4, 10, 7, 9 };
+	PuzzleState s;
+	for (int i = 0; i < (int)tmp.size(); i++) {
+		s.set(i, tmp[i]);
 	}
+	int id = dpd.getStateIndex(s);
+	int combi = id / factorialMap[8];
+	int permu = id % factorialMap[8];
+
+	PermutationIndex pId(8);
+	CombinationIndex<4> cId4(16, 8);
+
+	auto bbCombi = cId4.getCombination(combi);
+	auto bbPermu = pId.getPermutation(permu);
+	
+	vector<int> tmpres(16, 0);
+	for (int i = 0; i < 8; i++) {
+		int ix = bbCombi.get(i);
+		tmpres[ix] = tileGroup[bbPermu.get(i)];
+	}
+	for (int i = 0; i < 16; i++) {
+		printf("%d ", tmpres[i]);
+	}
+	printf("\n");
 
 	int nums[9] = { 0 };
 	int ans = -1;
@@ -85,7 +139,7 @@ int main()
 		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n", 
 			counter++, res.length, res.nIterations, 
 			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
-	}
+	}*/
 
 	system("pause");
 	return 0;
