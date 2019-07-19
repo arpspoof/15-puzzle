@@ -46,6 +46,7 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 			continue;
 		}
 		p.move(op);
+		assert(p.isSolvable());
 		PuzzleStateStorage newStateHash = p.state.getStorage();
 		if (exploredSet.find(newStateHash) == exploredSet.end()) {
 			nNodesExpanded++;
@@ -62,6 +63,7 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 			exploredSet.erase(newStateHash);
 		}
 		p.move(reverseOp);
+		assert(p.isSolvable());
 	}
 	return minEstimatedCost;
 }
@@ -78,10 +80,13 @@ SearchResult IDA(Puzzle p, Heuristic h) {
 	int nInterations = 0;
 	unsigned long long nTotalNodesExpanded = 0;
 
+	printf("initial h value is %d\n", h(p));
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
 	while (1) {
 		nInterations++;
 		nNodesExpanded = 0;
+
+		printf("interation %d, maxSearch = %d\n", nInterations, maxSearchLength);
 
 		int code = IDA(p, h, 0);
 		assert(code != INF);
@@ -100,7 +105,7 @@ SearchResult IDA(Puzzle p, Heuristic h) {
 	res.nIterations = nInterations;
 	res.nNodesExpanded = nTotalNodesExpanded;
 	res.nNodesInLastInteration = nNodesExpanded;
-	res.runTime = duration_cast<microseconds>(t2 - t1).count() / (double)1e6;
+	res.runTime = duration_cast<microseconds>(t2 - t1).count() / (double)1e3;
 
 	return res;
 }

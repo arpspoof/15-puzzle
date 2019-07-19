@@ -14,20 +14,6 @@
 
 using namespace std;
 
-int manhattan(Puzzle p) {
-	int value = 0;
-	for (int i = 0; i < 9; i++) {
-		int element = p.state.get(i);
-		if (element == 8) {
-			continue;
-		}
-		int r1 = i / 3, c1 = i % 3;
-		int r2 = element / 3, c2 = element % 3;
-		value += abs(r1 - r2) + abs(c1 - c2);
-	}
-	return value;
-}
-
 char getC(int v) {
 	if (v == 8) return ' ';
 	else return v + '0';
@@ -42,6 +28,24 @@ void display(Puzzle& p) {
 	);
 }
 
+char getC4(int v) {
+	if (v == 15) return ' ';
+	if (v >= 10) return 'A' + v - 10;
+	return v + '0';
+}
+
+void display4(Puzzle& p) {
+	auto s = p.state;
+	printf("%c %c %c %c\n%c %c %c %c\n%c %c %c %c\n%c %c %c %c\n\n",
+		getC4(s.get(0)), getC4(s.get(1)), getC4(s.get(2)), getC4(s.get(3)),
+		getC4(s.get(4)), getC4(s.get(5)), getC4(s.get(6)), getC4(s.get(7)), 
+		getC4(s.get(8)), getC4(s.get(9)), getC4(s.get(10)), getC4(s.get(11)),
+		getC4(s.get(12)), getC4(s.get(13)), getC4(s.get(14)), getC4(s.get(15))
+	);
+}
+
+
+
 void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 	printf("computing %s ...\n", name);
 	dpd.compute();
@@ -51,8 +55,70 @@ void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 	printf("writing to file done\n");
 }
 
+vector<int> tileGroup1{ 0, 1, 4, 5 };
+vector<int> tileGroup2{ 8, 9, 12, 13, 14 };
+vector<int> tileGroup3{ 2, 3, 6, 7, 10, 11 };
+DisjointPatternDB dpd1r(4, tileGroup1);
+DisjointPatternDB dpd2r(4, tileGroup2);
+DisjointPatternDB dpd3r(4, tileGroup3);
+
+int pd(Puzzle p) {
+	int h1 = dpd1r.getDBValue(p.state);
+	int h2 = dpd2r.getDBValue(p.state);
+	int h3 = dpd3r.getDBValue(p.state);
+	return h1 + h2 + h3;
+}
+
+int manhattan(Puzzle p) {
+	int value = 0;
+	int n = p.n;
+	int nn = p.n * p.n;
+	for (int i = 0; i < nn; i++) {
+		int element = p.state.get(i);
+		if (element == nn - 1) {
+			continue;
+		}
+		int r1 = i / n, c1 = i % n;
+		int r2 = element / n, c2 = element % n;
+		value += abs(r1 - r2) + abs(c1 - c2);
+	}
+	return value;
+}
+
 int main()
 {
+	dpd1r.readFromFile("E:/15puzzle-test-db1.db");
+	dpd2r.readFromFile("E:/15puzzle-test-db2.db");
+	dpd3r.readFromFile("E:/15puzzle-test-db3.db");
+	
+	for (int i = 0; i < 10000; i++) {
+		Puzzle p = getRandomPuzzle(4);
+		assert(p.isSolvable());
+		display4(p);
+		int h1 = dpd1r.getDBValue(p.state);
+		int h2 = dpd2r.getDBValue(p.state);
+		int h3 = dpd3r.getDBValue(p.state);
+		printf("h1=%d,h2=%d,h3=%d\n", h1, h2, h3);
+		SearchResult res = IDA(p, manhattan);
+		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n",
+			i, res.length, res.nIterations,
+			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
+		char *path = res.path;
+		assert(p.verifySolution(path));
+	}
+
+/*	for (int i = 0; i < 10000; i++) {
+		Puzzle p = getRandomPuzzle(4);
+		assert(p.isSolvable());
+		display4(p);
+		SearchResult res = IDA(p, manhattan);
+		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n",
+			i, res.length, res.nIterations,
+			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
+		char *path = res.path;
+		assert(p.verifySolution(path));
+	}*/
+
 /*	PuzzleState s;
 	for (int i = 0; i < 10000; i++) {
 		Puzzle p = getRandomPuzzle(3);
@@ -62,6 +128,14 @@ int main()
 		char *path = res.path;
 		assert(p.verifySolution(path));
 	}*/
+
+
+	/*vector<int> tileGroup1{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	DisjointPatternDB dpd1w(4, tileGroup1);
+	computeAndStoreDB("15puzzle-db1", dpd1w);*/
+	/*vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
+	DisjointPatternDB dpd2w(4, tileGroup2);
+	computeAndStoreDB("15puzzle-db2", dpd2w);*/
 
 /*	vector<int> tileGroup1{ 0, 1, 4, 5 };
 	vector<int> tileGroup2{ 8, 9, 12, 13, 14 };
@@ -117,9 +191,9 @@ int main()
 	for (int i = 0; i < 16; i++) {
 		printf("%d ", tmpres[i]);
 	}
-	printf("\n");
+	printf("\n");*/
 
-	int nums[9] = { 0 };
+	/*int nums[9] = { 0 };
 	int ans = -1;
 	int counter = 0;
 	ifstream input("E:/teset.csv");

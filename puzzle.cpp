@@ -98,7 +98,9 @@ bool Puzzle::isSolvable() const {
 			}
 		}
 	}
-	return (nInversions & 1) == 0;
+	int parity = nInversions & 1;
+	if (n & 1) return parity == 0;
+	else return ((emptyPos / n) & 1) != parity;
 }
 
 bool Puzzle::verifySolution(const char *ops) const {
