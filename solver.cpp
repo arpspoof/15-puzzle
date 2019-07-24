@@ -46,7 +46,6 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 			continue;
 		}
 		p.move(op);
-		assert(p.isSolvable());
 		PuzzleStateStorage newStateHash = p.state.getStorage();
 		if (exploredSet.find(newStateHash) == exploredSet.end()) {
 			nNodesExpanded++;
@@ -63,7 +62,6 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 			exploredSet.erase(newStateHash);
 		}
 		p.move(reverseOp);
-		assert(p.isSolvable());
 	}
 	return minEstimatedCost;
 }

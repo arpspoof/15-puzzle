@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bit_blocks.h"
+#include <string>
 
 // For 24-puzzle please change to __int128
 typedef unsigned long long PuzzleStateStorage;
@@ -16,12 +17,14 @@ public:
 	int n;
 	PuzzleState state;
 	Puzzle(int n, const int *permutation);
+	Puzzle(const std::string &str);
 public:
 	bool canMove(char op) const;
 	void move(char op);
 	bool isInGoalState() const;
 	bool isSolvable() const;
 	bool verifySolution(const char *ops) const;
+	std::string toString() const;
 private:
 	bool isValid() const;
 };

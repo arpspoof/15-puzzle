@@ -112,6 +112,27 @@ bool Puzzle::verifySolution(const char *ops) const {
 	return copy.isInGoalState();
 }
 
+string Puzzle::toString() const {
+	string s = "";
+	for (int i = 0; i < nn; i++) {
+		s += 'a' + state.get(i);
+	}
+	return s;
+}
+
+Puzzle::Puzzle(const string &str) {
+	n = (int)str.length();
+	nn = n * n;
+	for (int i = 0; i < nn; i++) {
+		int x = str[i] - 'a';
+		state.set(i, x);
+		if (x == nn - 1) {
+			emptyPos = x;
+		}
+	}
+	assert(isValid());
+}
+
 std::random_device rd;
 std::mt19937 mt(rd());
 std::uniform_real_distribution<double> dist(0.0, 1.0);

@@ -14,27 +14,13 @@
 
 using namespace std;
 
-char getC(int v) {
-	if (v == 8) return ' ';
-	else return v + '0';
-}
-
-void display(Puzzle& p) {
-	auto s = p.state;
-	printf("%c %c %c\n%c %c %c\n%c %c %c\n\n",
-		getC(s.get(0)), getC(s.get(1)), getC(s.get(2)),
-		getC(s.get(3)), getC(s.get(4)), getC(s.get(5)), 
-		getC(s.get(6)), getC(s.get(7)), getC(s.get(8))
-	);
-}
-
-char getC4(int v) {
+static char getC4(int v) {
 	if (v == 15) return ' ';
 	if (v >= 10) return 'A' + v - 10;
 	return v + '0';
 }
 
-void display4(Puzzle& p) {
+static void display4(Puzzle& p) {
 	auto s = p.state;
 	printf("%c %c %c %c\n%c %c %c %c\n%c %c %c %c\n%c %c %c %c\n\n",
 		getC4(s.get(0)), getC4(s.get(1)), getC4(s.get(2)), getC4(s.get(3)),
@@ -44,32 +30,36 @@ void display4(Puzzle& p) {
 	);
 }
 
-
-
-void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
+static void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 	printf("computing %s ...\n", name);
 	dpd.compute();
 	printf("computing %s done, writing to file ...\n", name);
-	string path = "E:/" + string(name) + ".db";
+	string path = string(name) + ".db";
 	dpd.storeToFile(path.c_str());
 	printf("writing to file done\n");
 }
 
-vector<int> tileGroup1{ 0, 1, 4, 5 };
-vector<int> tileGroup2{ 8, 9, 12, 13, 14 };
-vector<int> tileGroup3{ 2, 3, 6, 7, 10, 11 };
-DisjointPatternDB dpd1r(4, tileGroup1);
-DisjointPatternDB dpd2r(4, tileGroup2);
-DisjointPatternDB dpd3r(4, tileGroup3);
-
-int pd(Puzzle p) {
-	int h1 = dpd1r.getDBValue(p.state);
-	int h2 = dpd2r.getDBValue(p.state);
-	int h3 = dpd3r.getDBValue(p.state);
-	return h1 + h2 + h3;
+static void computePatternDBs() {
+	vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
+	DisjointPatternDB dpd2w(4, tileGroup2);
+	computeAndStoreDB("15puzzle-db2", dpd2w);
+	vector<int> tileGroup1{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	DisjointPatternDB dpd1w(4, tileGroup1);
+	computeAndStoreDB("15puzzle-db1", dpd1w); 
 }
 
-int manhattan(Puzzle p) {
+static vector<int> tileGroup1H4{ 0, 1, 2, 3, 4, 5, 6, 7 };
+static vector<int> tileGroup2H4{ 8, 9, 10, 11, 12, 13, 14 };
+static DisjointPatternDB dpd1r(4, tileGroup1H4);
+static DisjointPatternDB dpd2r(4, tileGroup2H4);
+
+static int dpdh4(Puzzle p) {
+	int h1 = dpd1r.getDBValue(p.state);
+	int h2 = dpd2r.getDBValue(p.state);
+	return h1 + h2;
+}
+
+static int manhattan(Puzzle p) {
 	int value = 0;
 	int n = p.n;
 	int nn = p.n * p.n;
@@ -85,136 +75,60 @@ int manhattan(Puzzle p) {
 	return value;
 }
 
-int main()
+
+
+int main(int argc, char **argv)
 {
-	dpd1r.readFromFile("E:/15puzzle-test-db1.db");
-	dpd2r.readFromFile("E:/15puzzle-test-db2.db");
-	dpd3r.readFromFile("E:/15puzzle-test-db3.db");
+	if (argc <= 1) {
+		printf("you must specify an argument!\n");
+		exit(2);
+	}
+
+	if (argv[1] == string("-compute")) {
+		computePatternDBs();
+		return 0;
+	}
+
+	ofstream o(argv[1]);
+	o << "puzzle,method,solution-length,solution,initial-h,run-time(ms),nodes-expanded,nodes-per-second,iterations" << endl;
+	o.flush();
+
+	dpd1r.readFromFile("15puzzle-db1.db");
+	dpd2r.readFromFile("15puzzle-db2.db");
 	
-	for (int i = 0; i < 10000; i++) {
+	for (int i = 0; i < 100; i++) {
 		Puzzle p = getRandomPuzzle(4);
-		assert(p.isSolvable());
 		display4(p);
-		int h1 = dpd1r.getDBValue(p.state);
-		int h2 = dpd2r.getDBValue(p.state);
-		int h3 = dpd3r.getDBValue(p.state);
-		printf("h1=%d,h2=%d,h3=%d\n", h1, h2, h3);
-		SearchResult res = IDA(p, manhattan);
-		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n",
-			i, res.length, res.nIterations,
-			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
-		char *path = res.path;
-		assert(p.verifySolution(path));
-	}
 
-/*	for (int i = 0; i < 10000; i++) {
-		Puzzle p = getRandomPuzzle(4);
-		assert(p.isSolvable());
-		display4(p);
-		SearchResult res = IDA(p, manhattan);
-		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n",
-			i, res.length, res.nIterations,
-			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
-		char *path = res.path;
-		assert(p.verifySolution(path));
-	}*/
+		SearchResult res2 = IDA(p, dpdh4);
+		double nodesPerSecond2 = res2.nNodesExpanded * 1000.0 / res2.runTime;
+		o << p.toString() << ",disjoint-database," << res2.length << "," << string(res2.path) << ","
+			<< dpdh4(p) << "," << res2.runTime << "," << res2.nNodesExpanded << "," <<
+			nodesPerSecond2 << "," << res2.nIterations << endl;
+		o.flush();
+		printf("(disjoint database) solved problem %d, solution = %d, iter = %d, nodes = %llu, nodesPerSecond = %lf, ms = %lf\n",
+			i, res2.length, res2.nIterations,
+			res2.nNodesExpanded, nodesPerSecond2, res2.runTime);
+		assert(p.verifySolution(res2.path));
 
-/*	PuzzleState s;
-	for (int i = 0; i < 10000; i++) {
-		Puzzle p = getRandomPuzzle(3);
-		assert(p.isSolvable());
-		SearchResult res = IDA(p, manhattan);
-		printf("solved problem %d, solution = %d\n", i, res.length);
-		char *path = res.path;
-		assert(p.verifySolution(path));
-	}*/
+		SearchResult res1 = IDA(p, manhattan);
+		double nodesPerSecond1 = res1.nNodesExpanded * 1000.0 / res1.runTime;
+		o << p.toString() << ",manhattan," << res1.length << "," << string(res1.path) << "," 
+			<< manhattan(p) << "," << res1.runTime << "," << res1.nNodesExpanded << "," <<
+			nodesPerSecond1 << "," << res1.nIterations << endl;
+		o.flush();
+		printf("(manhattan) solved problem %d, solution = %d, iter = %d, nodes = %llu, nodesPerSecond = %lf, ms = %lf\n",
+			i, res1.length, res1.nIterations,
+			res1.nNodesExpanded, nodesPerSecond1, res1.runTime);
+		assert(p.verifySolution(res1.path));
 
-
-	/*vector<int> tileGroup1{ 0, 1, 2, 3, 4, 5, 6, 7 };
-	DisjointPatternDB dpd1w(4, tileGroup1);
-	computeAndStoreDB("15puzzle-db1", dpd1w);*/
-	/*vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
-	DisjointPatternDB dpd2w(4, tileGroup2);
-	computeAndStoreDB("15puzzle-db2", dpd2w);*/
-
-/*	vector<int> tileGroup1{ 0, 1, 4, 5 };
-	vector<int> tileGroup2{ 8, 9, 12, 13, 14 };
-	vector<int> tileGroup3{ 2, 3, 6, 7, 10, 11 };
-	DisjointPatternDB dpd1w(4, tileGroup1);
-	DisjointPatternDB dpd2w(4, tileGroup2);
-	DisjointPatternDB dpd3w(4, tileGroup3);
-	computeAndStoreDB("15puzzle-test-db1", dpd1w);
-	computeAndStoreDB("15puzzle-test-db2", dpd2w);
-	computeAndStoreDB("15puzzle-test-db3", dpd3w);
-	DisjointPatternDB dpd1r(4, tileGroup1);
-	DisjointPatternDB dpd2r(4, tileGroup2);
-	DisjointPatternDB dpd3r(4, tileGroup3);
-	dpd1r.readFromFile("E:/15puzzle-test-db1.db");
-	dpd2r.readFromFile("E:/15puzzle-test-db2.db");
-	dpd3r.readFromFile("E:/15puzzle-test-db3.db");
-	for (int i = 0; i < (int)dpd1r.db.size(); i++) {
-		if (dpd1r.db[i] != dpd1w.db[i]) {
-			printf("error founded in db1:%d!\n", i);
+		if (res1.length != res2.length) {
+			printf("there's an error!\n");
+			exit(1);
 		}
 	}
-	for (int i = 0; i < (int)dpd2r.db.size(); i++) {
-		if (dpd2r.db[i] != dpd2w.db[i]) {
-			printf("error founded in db2:%d!\n", i);
-		}
-	}
-	for (int i = 0; i < (int)dpd3r.db.size(); i++) {
-		if (dpd3r.db[i] != dpd3w.db[i]) {
-			printf("error founded in db3:%d!\n", i);
-		}
-	}*/
 
-	/*vector<int> tmp{ 14, 1, 15, 6, 3, 5, 2, 11, 8, 0, 12, 13, 4, 10, 7, 9 };
-	PuzzleState s;
-	for (int i = 0; i < (int)tmp.size(); i++) {
-		s.set(i, tmp[i]);
-	}
-	int id = dpd.getStateIndex(s);
-	int combi = id / factorialMap[8];
-	int permu = id % factorialMap[8];
+	o.close();
 
-	PermutationIndex pId(8);
-	CombinationIndex<4> cId4(16, 8);
-
-	auto bbCombi = cId4.getCombination(combi);
-	auto bbPermu = pId.getPermutation(permu);
-	
-	vector<int> tmpres(16, 0);
-	for (int i = 0; i < 8; i++) {
-		int ix = bbCombi.get(i);
-		tmpres[ix] = tileGroup[bbPermu.get(i)];
-	}
-	for (int i = 0; i < 16; i++) {
-		printf("%d ", tmpres[i]);
-	}
-	printf("\n");*/
-
-	/*int nums[9] = { 0 };
-	int ans = -1;
-	int counter = 0;
-	ifstream input("E:/teset.csv");
-	while (input >> nums[0]) {
-		for (int i = 1; i < 9; i++) {
-			input >> nums[i];
-		}
-		input >> ans;
-		for (int i = 0; i < 9; i++) {
-			if (nums[i] == 0) nums[i] = 8;
-			else nums[i]--;
-		}
-		Puzzle p(3, nums);
-		assert(p.isSolvable());
-		SearchResult res = IDA(p, manhattan);
-		assert(res.length == ans);
-		printf("solved problem %d, solution = %d, iter = %d, nodes = %llu, last_nodes = %llu, ms = %lf\n", 
-			counter++, res.length, res.nIterations, 
-			res.nNodesExpanded, res.nNodesInLastInteration, res.runTime);
-	}*/
-
-	system("pause");
 	return 0;
 }
