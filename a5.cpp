@@ -39,24 +39,39 @@ static void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 	printf("writing to file done\n");
 }
 
-static void computePatternDBs() {
+/*static void computePatternDBs() {
 	vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
 	DisjointPatternDB dpd2w(4, tileGroup2);
 	computeAndStoreDB("15puzzle-db2", dpd2w);
 	vector<int> tileGroup1{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	DisjointPatternDB dpd1w(4, tileGroup1);
 	computeAndStoreDB("15puzzle-db1", dpd1w); 
-}
+}*/
 
 static vector<int> tileGroup1H4{ 0, 1, 2, 3, 4, 5, 6, 7 };
 static vector<int> tileGroup2H4{ 8, 9, 10, 11, 12, 13, 14 };
-static DisjointPatternDB dpd1r(4, tileGroup1H4);
-static DisjointPatternDB dpd2r(4, tileGroup2H4);
 
-static int dpdh4(Puzzle p) {
+static vector<int> tileGroup1H4_555{ 0, 1, 4, 5, 8 };
+static vector<int> tileGroup2H4_555{ 2, 3, 6, 7, 11 };
+static vector<int> tileGroup3H4_555{ 9, 10, 12, 13, 14 };
+//static DisjointPatternDB dpd1r(4, tileGroup1H4);
+//static DisjointPatternDB dpd2r(4, tileGroup2H4);
+
+/*static int dpdh4(Puzzle p) {
 	int h1 = dpd1r.getDBValue(p.state);
 	int h2 = dpd2r.getDBValue(p.state);
 	return h1 + h2;
+}*/
+
+static DisjointPatternDB dpd1r_555(4, tileGroup1H4_555);
+static DisjointPatternDB dpd2r_555(4, tileGroup2H4_555);
+static DisjointPatternDB dpd3r_555(4, tileGroup3H4_555);
+
+static int dpdh4_555(Puzzle p) {
+	int h1 = dpd1r_555.getDBValue(p.state);
+	int h2 = dpd2r_555.getDBValue(p.state);
+	int h3 = dpd3r_555.getDBValue(p.state);
+	return h1 + h2 + h3;
 }
 
 static int manhattan(Puzzle p) {
@@ -76,10 +91,44 @@ static int manhattan(Puzzle p) {
 }
 
 
+static void computePatternDBs() {
+	DisjointPatternDB dpd1w(4, tileGroup1H4_555);
+	computeAndStoreDB("15puzzle-db555-1", dpd1w);
+	DisjointPatternDB dpd2w(4, tileGroup2H4_555);
+	computeAndStoreDB("15puzzle-db555-2", dpd2w);
+	DisjointPatternDB dpd3w(4, tileGroup3H4_555);
+	computeAndStoreDB("15puzzle-db555-3", dpd3w);
+}
 
 int main(int argc, char **argv)
 {
-	if (argc <= 1) {
+	/*DisjointPatternDB dpd1w(4, tileGroup1H4_555);
+	computeAndStoreDB("15puzzle-db555-1", dpd1w);
+	system("pause");
+	return 0;*/
+/*	vector<int> testGroup{ 11,3,5,7,1,9,13 };
+	DisjointPatternDB db(4, testGroup);
+	int testpm[] = {4,10,8,3,15,0,11,14,1,5,6,12,9,2,13,7};
+	Puzzle testp(4, testpm);
+	int testid = db.getStateIndex(testp.state);
+	int testcombiid = testid / factorialMap[8];
+	int testpermuid = testid % factorialMap[8];
+	auto testcombi = db.cId4.getCombination(testcombiid);
+	auto testpermu = db.pId.getPermutation(testpermuid);
+	int testar[16] = { 0 };
+	for (int i = 0; i < 8; i++) {
+		int tmp = testpermu.get(i);
+		int xx = tmp == 0 ? 15 : testGroup[tmp - 1];
+		testar[testcombi.get(i)] = xx;
+	}
+	for (int i = 0; i < 16; i++) {
+		cout << testar[i] << " ";
+	}
+	cout << endl;
+	system("pause");
+	return 0;*/
+
+/*	if (argc <= 1) {
 		printf("you must specify an argument!\n");
 		exit(2);
 	}
@@ -89,21 +138,23 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	ofstream o(argv[1]);
+	ofstream o(argv[1]);*/
+	ofstream o("tmp_res.csv");
 	o << "puzzle,method,solution-length,solution,initial-h,run-time(ms),nodes-expanded,nodes-per-second,iterations" << endl;
 	o.flush();
 
-	dpd1r.readFromFile("15puzzle-db1.db");
-	dpd2r.readFromFile("15puzzle-db2.db");
+	dpd1r_555.readFromFile("15puzzle-db555-1.db");
+	dpd2r_555.readFromFile("15puzzle-db555-2.db");
+	dpd3r_555.readFromFile("15puzzle-db555-3.db");
 	
 	for (int i = 0; i < 100; i++) {
 		Puzzle p = getRandomPuzzle(4);
 		display4(p);
 
-		SearchResult res2 = IDA(p, dpdh4);
+		SearchResult res2 = IDA(p, dpdh4_555);
 		double nodesPerSecond2 = res2.nNodesExpanded * 1000.0 / res2.runTime;
 		o << p.toString() << ",disjoint-database," << res2.length << "," << string(res2.path) << ","
-			<< dpdh4(p) << "," << res2.runTime << "," << res2.nNodesExpanded << "," <<
+			<< dpdh4_555(p) << "," << res2.runTime << "," << res2.nNodesExpanded << "," <<
 			nodesPerSecond2 << "," << res2.nIterations << endl;
 		o.flush();
 		printf("(disjoint database) solved problem %d, solution = %d, iter = %d, nodes = %llu, nodesPerSecond = %lf, ms = %lf\n",

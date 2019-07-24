@@ -6,7 +6,8 @@
 #include <vector>
 
 class DisjointPatternDB {
-	int n, r, nn, emptyTile;
+public:
+	int n, r, nn, emptyTile, dummyTile;
 	std::vector<unsigned char> tileGroupMap;
 	std::vector<unsigned char> db;
 	PermutationIndex pId;
@@ -20,6 +21,7 @@ public:
 	void readFromFile(const char *path);
 	int getDBValue(PuzzleState state);
 private:
+public:
 	int getStateIndex(PuzzleState state) const;
 	bool checkMove(PuzzleState s, int pos, char dir) const;
 	PuzzleState moveAndCopy(PuzzleState s, int pos, char dir) const;
