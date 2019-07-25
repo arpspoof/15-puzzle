@@ -9,7 +9,7 @@ class DisjointPatternDB {
 	int n, r, nn, emptyTile;
 	std::vector<unsigned char> tileGroupMap;
 	std::vector<unsigned char> db;
-	PermutationIndex pId;
+	PermutationIndex<3> pId;
 	CombinationIndex<4> cId4;
 	CombinationIndex<5> cId5;
 public:

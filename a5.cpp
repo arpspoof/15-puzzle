@@ -7,6 +7,7 @@
 #include "bit_blocks.h"
 #include "index.h"
 #include "dpd.h"
+#include "computeDpd.h"
 
 #include <cassert>
 #include <string>
@@ -79,7 +80,11 @@ static int manhattan(Puzzle p) {
 
 int main(int argc, char **argv)
 {
-	if (argc <= 1) {
+	string storePath = "test";
+	computeDpd(4, storePath, tileGroup1H4, 12);
+	system("pause");
+
+	/*if (argc <= 1) {
 		printf("you must specify an argument!\n");
 		exit(2);
 	}
@@ -128,7 +133,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	o.close();
+	o.close();*/
 
 	return 0;
 }
