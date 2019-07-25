@@ -3,7 +3,6 @@
 #include "dpd.h"
 
 #include <vector>
-#include <bitset>
 #include <string>
 #include <iostream>
 #include <fstream>

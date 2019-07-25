@@ -13,22 +13,12 @@ static const int INF = 0x7FFFFFFF;
 
 static char path[256] = { 0 };
 static char operationList[] = { 'u','d','l','r' };
+static char reverse_operationList[] = { 'd','u','r','l' };
 
 static unsigned long long nNodesExpanded = 0;
 static int maxSearchLength = -1;
 static int pathPointer = 0;
 static unordered_set<PuzzleStateStorage> exploredSet;
-
-static char getOppositeOperation(char op) {
-	switch (op) {
-	case 'u': return 'd';
-	case 'd': return 'u';
-	case 'l': return 'r';
-	case 'r': return 'l';
-	}
-	assert(false);
-	return '\0';
-}
 
 int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 	int estimatedCostCurrent = lengthToCurrentState + h(p);
@@ -41,7 +31,6 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 	int minEstimatedCost = INF;
 	for (int i = 0; i < 4; i++) {
 		char op = operationList[i];
-		char reverseOp = getOppositeOperation(op);
 		if (!p.canMove(op)) {
 			continue;
 		}
@@ -61,6 +50,7 @@ int IDA(Puzzle &p, Heuristic h, int lengthToCurrentState) {
 			path[--pathPointer] = 0;
 			exploredSet.erase(newStateHash);
 		}
+		char reverseOp = reverse_operationList[i];
 		p.move(reverseOp);
 	}
 	return minEstimatedCost;
@@ -84,7 +74,7 @@ SearchResult IDA(Puzzle p, Heuristic h) {
 		nInterations++;
 		nNodesExpanded = 0;
 
-		printf("interation %d, maxSearch = %d\n", nInterations, maxSearchLength);
+		printf("iteration %d, maxSearch = %d\n", nInterations, maxSearchLength);
 
 		int code = IDA(p, h, 0);
 		assert(code != INF);
