@@ -11,6 +11,7 @@
 #include <cassert>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -77,46 +78,7 @@ static int manhattan(Puzzle p) {
 
 int main(int argc, char **argv)
 {
-//	computePatternDBs2();
-//	system("pause");
-/*	testdb1.readFromFile("15puzzle-db1-555-test1.db");
-	testdb2.readFromFile("15puzzle-db1-555-test2.db");
-	testdb3.readFromFile("15puzzle-db1-555-test3.db");*/
-
-	//computePatternDBs();
-
-	dpd1r.readFromFile("15puzzle-db1.db");
-	dpd2r.readFromFile("15puzzle-db2.db");
-
-	ifstream in("E:/problemset.csv");
-	ofstream o("pattern-db-res.csv"); 
-	o << "puzzle,method,solution-length,solution,initial-h,run-time(ms),nodes-expanded,nodes-per-second,iterations" << endl;
-	o.flush();
-	string str; int ans; int i = 0;
-	while (in >> str >> ans) {
-		vector<int> eles;
-		for (char c : str) {
-			eles.push_back(c - 'a');
-		}
-		Puzzle p(4, eles.data());
-		auto res = IDA(p, dpdh4);
-		double nodesPerSecond = res.nNodesExpanded * 1000.0 / res.runTime;
-		o << p.toString() << ",disjoint-database," << res.length << "," << string(res.path) << ","
-			<< dpdh4(p) << "," << res.runTime << "," << res.nNodesExpanded << "," <<
-			nodesPerSecond << "," << res.nIterations << endl;
-		o.flush(); 
-		printf("(disjoint database) solved problem %d, solution = %d, iter = %d, nodes = %llu, nodesPerSecond = %lf, ms = %lf\n",
-			i++, res.length, res.nIterations,
-			res.nNodesExpanded, nodesPerSecond, res.runTime);
-		if (res.length != ans) {
-			cout << "error!!!" << endl;
-			system("pause");
-			exit(0);
-		}
-	}
-	system("pause");
-
-	/*if (argc <= 1) {
+	if (argc <= 1) {
 		printf("you must specify an argument!\n");
 		exit(2);
 	}
@@ -132,8 +94,14 @@ int main(int argc, char **argv)
 
 	dpd1r.readFromFile("15puzzle-db1.db");
 	dpd2r.readFromFile("15puzzle-db2.db");
+
+	int nRepeat = 100;
+	if (argc > 2) {
+		stringstream ss(argv[2]);
+		ss >> nRepeat;
+	}
 	
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < nRepeat; i++) {
 		Puzzle p = getRandomPuzzle(4);
 		display4(p);
 
@@ -165,7 +133,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	o.close();*/
+	o.close();
 
 	return 0;
 }
