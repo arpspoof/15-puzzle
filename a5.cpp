@@ -128,6 +128,7 @@ int main(int argc, char **argv)
 		auto res = IDA(p, dpdh4_555);
 		if (res.length != ans) {
 			cout << "error!!!" << endl;
+			system("pause");
 			exit(0);
 		}
 	}

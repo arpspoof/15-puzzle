@@ -70,7 +70,7 @@ unsigned int DisjointPatternDB::getSearchStateIndex(PuzzleState state) const {
 
 void DisjointPatternDB::bfs_thread(int fileId, int dataId) {
 	vector<pair<PuzzleState, unsigned char>> &data = dataArray[dataId];
-	ofstream o(getFilePathById(fileId), ios::app | ios::out | ios::binary);
+	vector<pair<PuzzleState, unsigned char>> nextdata;
 
 	for (size_t i = 0; i < data.size(); i++) {
 		auto &p = data[i];
@@ -92,7 +92,7 @@ void DisjointPatternDB::bfs_thread(int fileId, int dataId) {
 						data.push_back(newp);
 					}
 					else {
-						o.write((const char *)&newp, sizeof(newp));
+						nextdata.push_back(newp);
 					}
 
 					searchProgress++;
@@ -104,6 +104,9 @@ void DisjointPatternDB::bfs_thread(int fileId, int dataId) {
 		}
 	}
 
+	int sizePair = sizeof(pair<PuzzleState, unsigned char>);
+	ofstream o(getFilePathById(fileId), ios::app | ios::out | ios::binary);
+	o.write((const char *)nextdata.data(), sizePair * nextdata.size());
 	o.close();
 }
 
