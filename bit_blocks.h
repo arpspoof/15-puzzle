@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 template <
 	typename TStorage, 
 	int blockSize, 
@@ -25,5 +27,20 @@ public:
 	}
 	TStorage getStorage() const {
 		return storage;
+	}
+};
+
+class Bitmap {
+	std::vector<long long> data;
+public:
+	Bitmap() :data(0) { }
+	Bitmap(long long n) :data(n / 64 + (n % 64 != 0), 0) { }
+
+	bool get(long long i) {
+		return data[i / 64] & (1LL << (i % 64));
+	}
+
+	void set(long long i) {
+		data[i / 64] |= (1LL << (i % 64));
 	}
 };

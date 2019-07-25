@@ -7,7 +7,6 @@
 #include "bit_blocks.h"
 #include "index.h"
 #include "dpd.h"
-#include "computeDpd.h"
 
 #include <cassert>
 #include <string>
@@ -33,7 +32,7 @@ static void display4(Puzzle& p) {
 
 static void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 	printf("computing %s ...\n", name);
-	dpd.compute();
+	dpd.compute(12, 256);
 	printf("computing %s done, writing to file ...\n", name);
 	string path = string(name) + ".db";
 	dpd.storeToFile(path.c_str());
@@ -41,12 +40,12 @@ static void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 }
 
 static void computePatternDBs() {
-	vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
-	DisjointPatternDB dpd2w(4, tileGroup2);
-	computeAndStoreDB("15puzzle-db2", dpd2w);
-	vector<int> tileGroup1{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	vector<int> tileGroup1{ 0, 1, 2, 3, /*4, 5, 6, 7*/ };
 	DisjointPatternDB dpd1w(4, tileGroup1);
-	computeAndStoreDB("15puzzle-db1", dpd1w); 
+	computeAndStoreDB("15puzzle-db1", dpd1w);
+	/*vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
+	DisjointPatternDB dpd2w(4, tileGroup2);
+	computeAndStoreDB("15puzzle-db2", dpd2w);*/
 }
 
 static vector<int> tileGroup1H4{ 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -80,8 +79,7 @@ static int manhattan(Puzzle p) {
 
 int main(int argc, char **argv)
 {
-	string storePath = "test";
-	computeDpd(4, storePath, tileGroup1H4, 12);
+	computePatternDBs();
 	system("pause");
 
 	/*if (argc <= 1) {
