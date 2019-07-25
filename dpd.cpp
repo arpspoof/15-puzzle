@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <fstream>
+#include <unordered_set>
 
 using namespace std;
 
@@ -19,34 +20,35 @@ static int nPr(int n, int r) {
 }
 
 DisjointPatternDB::DisjointPatternDB(int n, const vector<int> &tileGroup)
-	:n(n), r((int)tileGroup.size()), nn(n * n), emptyTile(nn - 1),
+	:n(n), r((int)tileGroup.size()), nn(n * n), emptyTile(nn - 1), goalMask(0), goalValue(0),
 	tileGroupMap(nn, emptyTile), db(nPr(nn, r), DB_UNDEFINED), pId(r) {
 	assert(n == 4 || n == 5);
+	PuzzleStateStorage maskBlock = n == 4 ? 15 : 31;
 	for (int i = 0; i < r; i++) {
-		this->tileGroupMap[tileGroup[i]] = i;
+		tileGroupMap[tileGroup[i]] = i;
+		goalMask |= maskBlock << (n * tileGroup[i]);
+		goalValue |= (PuzzleStateStorage)tileGroup[i] << (n * tileGroup[i]);
+	}
+	for (int i = 0; i < nn; i++) {
+		if (tileGroupMap[i] == emptyTile) {
+			dummyTile = i;
+			break;
+		}
 	}
 	if (n == 4) cId4 = CombinationIndex<4>(nn, r);
 	if (n == 5) cId5 = CombinationIndex<5>(nn, r);
 }
 
-bool DisjointPatternDB::checkMove(PuzzleState s, int pos, char dir) const {
+bool DisjointPatternDB::checkMove(int pos, char dir) const {
 	switch (dir) {
 	case 'u':
-		if (pos / n == 0) return false;
-		if (s.get(pos - n) != emptyTile) return false;
-		return true;
+		return (pos / n != 0);
 	case 'd':
-		if (pos / n == n - 1) return false;
-		if (s.get(pos + n) != emptyTile) return false;
-		return true;
+		return (pos / n != n - 1);
 	case 'l':
-		if (pos % n == 0) return false;
-		if (s.get(pos - 1) != emptyTile) return false;
-		return true;
+		return (pos % n != 0);
 	case 'r':
-		if (pos % n == n - 1) return false;
-		if (s.get(pos + 1) != emptyTile) return false;
-		return true;
+		return (pos % n != n - 1);
 	default:
 		assert(false);
 		return false;
@@ -54,7 +56,7 @@ bool DisjointPatternDB::checkMove(PuzzleState s, int pos, char dir) const {
 }
 
 PuzzleState DisjointPatternDB::moveAndCopy(PuzzleState s, int pos, char dir) const {
-	assert(checkMove(s, pos, dir));
+	assert(checkMove(pos, dir));
 	PuzzleState res(s);
 	switch (dir) {
 	case 'u':
@@ -73,6 +75,65 @@ PuzzleState DisjointPatternDB::moveAndCopy(PuzzleState s, int pos, char dir) con
 		assert(false);
 	}
 	return res;
+}
+
+int DisjointPatternDB::manhattan(const PuzzleState &s) const {
+	int result = 0;
+	for (int i = 0; i < nn; i++) {
+		int x = s.get(i);
+		if (x == dummyTile || x == emptyTile) {
+			continue;
+		}
+		result += abs(i / n - x / n) + abs(i % n - x % n);
+	}
+	return result;
+}
+
+int DisjointPatternDB::aStar(const PuzzleState &s) const {
+	typedef tuple<unsigned char, PuzzleStateStorage, unsigned char> _pqElement;
+	priority_queue<_pqElement, vector<_pqElement>, greater<_pqElement>> frontiers;
+
+	unordered_set<PuzzleStateStorage> explored;
+
+	frontiers.push(make_tuple(manhattan(s), s.getStorage(), 0));
+	explored.insert(s.getStorage());
+
+	char actionList[] = { 'u', 'd', 'l', 'r' };
+	
+	while (!frontiers.empty()) {
+		auto p = frontiers.top();
+		frontiers.pop();
+
+		unsigned char gValue = get<0>(p);
+		unsigned char fValue = get<2>(p);
+
+		PuzzleState state(get<1>(p));
+		if ((state.getStorage() & goalMask) == goalValue) {
+			assert(fValue == gValue);
+			return fValue;
+		}
+
+		for (int i = 0; i < nn; i++) {
+			if (state.get(i) != emptyTile) {
+				continue;
+			}
+			for (char action : actionList) {
+				if (!checkMove(i, action)) {
+					continue;
+				}
+				PuzzleState copy = moveAndCopy(state, i, action);
+				if (explored.find(copy.getStorage()) == explored.end()) {
+					unsigned char newFValue = fValue + (copy.get(i) != dummyTile);
+					unsigned char newGValue = newFValue + manhattan(copy);
+					frontiers.push(make_tuple(newGValue, copy.getStorage(), newFValue));
+					explored.insert(copy.getStorage());
+				}
+			}
+			break;
+		}
+	}
+	assert(false);
+	return -1;
 }
 
 void DisjointPatternDB::compute() {
@@ -96,7 +157,7 @@ void DisjointPatternDB::compute() {
 		for (int i = 0; i < nn; i++) {
 			if (s.get(i) == emptyTile) continue;
 			for (char c : actionList) {
-				if (checkMove(s, i, c)) {
+				if (checkMove(i, c)) {
 					PuzzleState copy = moveAndCopy(s, i, c);
 					int newIndex = getStateIndex(copy);
 					if (db[newIndex] == DB_UNDEFINED) {

@@ -79,6 +79,33 @@ static int manhattan(Puzzle p) {
 
 int main(int argc, char **argv)
 {
+	string str = "mjkofcnhdbilpgae";
+	PuzzleState p;
+	for (int i = 0; i < 16; i++) {
+		int x = str[i] - 'a';
+		if (x >= 8) {
+			p.set(i, x);
+		}
+	}
+	DisjointPatternDB ddb(4, tileGroup2H4);
+	printf("%d\n", ddb.aStar(p));
+
+	PuzzleState p2;
+	for (int i = 0; i < 16; i++) {
+		int x = str[i] - 'a';
+		if (x < 8 || x == 15) {
+			p2.set(i, x);
+		}
+		else {
+			p2.set(i, 8);
+		}
+	}
+	DisjointPatternDB ddb2(4, tileGroup1H4);
+	printf("%d\n", ddb2.aStar(p2));
+
+	system("pause");
+	return 0;
+
 	if (argc <= 1) {
 		printf("you must specify an argument!\n");
 		exit(2);

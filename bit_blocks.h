@@ -11,6 +11,10 @@ public:
 		static_assert(blockSize <= 5 && blockSize >= 1,
 			"blockSize must be positive and less or equal to 5");
 	}
+	BitBlock(TStorage storage) :storage(storage) {
+		static_assert(blockSize <= 5 && blockSize >= 1,
+			"blockSize must be positive and less or equal to 5");
+	}
 public:
 	int get(int i) const {
 		return (int)((storage >> (i * blockSize)) & elementMask);
