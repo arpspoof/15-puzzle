@@ -32,7 +32,7 @@ static void display4(Puzzle& p) {
 
 static void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 	printf("computing %s ...\n", name);
-	dpd.compute(12, 256);
+	dpd.compute(12, 8192);
 	printf("computing %s done, writing to file ...\n", name);
 	string path = string(name) + ".db";
 	dpd.storeToFile(path.c_str());
@@ -40,18 +40,36 @@ static void computeAndStoreDB(const char *name, DisjointPatternDB &dpd) {
 }
 
 static void computePatternDBs() {
-	vector<int> tileGroup1{ 0, 1, 2, 3, /*4, 5, 6, 7*/ };
+	vector<int> tileGroup1{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	DisjointPatternDB dpd1w(4, tileGroup1);
 	computeAndStoreDB("15puzzle-db1", dpd1w);
-	/*vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
+	vector<int> tileGroup2{ 8, 9, 10, 11, 12, 13, 14 };
 	DisjointPatternDB dpd2w(4, tileGroup2);
-	computeAndStoreDB("15puzzle-db2", dpd2w);*/
+	computeAndStoreDB("15puzzle-db2", dpd2w);
+}
+
+static void computePatternDBs2() {
+	vector<int> tileGroup1{ 0, 1, 4, 5, 8 };
+	DisjointPatternDB dpd1w(4, tileGroup1);
+	computeAndStoreDB("15puzzle-db1-555-test1", dpd1w);
+
+	vector<int> tileGroup2{ 2, 3, 6, 7, 11 };
+	DisjointPatternDB dpd2w(4, tileGroup2);
+	computeAndStoreDB("15puzzle-db1-555-test2", dpd2w);
+
+	vector<int> tileGroup3{ 9, 10, 12, 13, 14 };
+	DisjointPatternDB dpd3w(4, tileGroup3);
+	computeAndStoreDB("15puzzle-db1-555-test3", dpd3w);
 }
 
 static vector<int> tileGroup1H4{ 0, 1, 2, 3, 4, 5, 6, 7 };
 static vector<int> tileGroup2H4{ 8, 9, 10, 11, 12, 13, 14 };
 static DisjointPatternDB dpd1r(4, tileGroup1H4);
 static DisjointPatternDB dpd2r(4, tileGroup2H4);
+
+vector<int> tileGroup1{ 0, 1, 4, 5, 8 };
+vector<int> tileGroup2{ 2, 3, 6, 7, 11 };
+vector<int> tileGroup3{ 9, 10, 12, 13, 14 };
 
 static int dpdh4(Puzzle p) {
 	int h1 = dpd1r.getDBValue(p.state);
@@ -75,12 +93,44 @@ static int manhattan(Puzzle p) {
 	return value;
 }
 
+DisjointPatternDB testdb1(4, tileGroup1);
+DisjointPatternDB testdb2(4, tileGroup2);
+DisjointPatternDB testdb3(4, tileGroup3);
 
+static int dpdh4_555(Puzzle p) {
+	int h1 = testdb1.getDBValue(p.state);
+	int h2 = testdb2.getDBValue(p.state);
+	int h3 = testdb3.getDBValue(p.state);
+	return h1 + h2 + h3;
+}
 
 int main(int argc, char **argv)
 {
+//	computePatternDBs2();
+//	system("pause");
+/*	testdb1.readFromFile("15puzzle-db1-555-test1.db");
+	testdb2.readFromFile("15puzzle-db1-555-test2.db");
+	testdb3.readFromFile("15puzzle-db1-555-test3.db");*/
+
 	computePatternDBs();
-	system("pause");
+
+	dpd1r.readFromFile("15puzzle-db1.db");
+	dpd2r.readFromFile("15puzzle-db2.db");
+
+	ifstream in("E:/problemset.csv");
+	string str; int ans;
+	while (in >> str >> ans) {
+		vector<int> eles;
+		for (char c : str) {
+			eles.push_back(c - 'a');
+		}
+		Puzzle p(4, eles.data());
+		auto res = IDA(p, dpdh4_555);
+		if (res.length != ans) {
+			cout << "error!!!" << endl;
+			exit(0);
+		}
+	}
 
 	/*if (argc <= 1) {
 		printf("you must specify an argument!\n");

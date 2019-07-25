@@ -13,14 +13,13 @@ class DisjointPatternDB {
 	CombinationIndex<4> cId;
 	Bitmap searchHash;
 	std::vector<std::vector<std::pair<PuzzleState, unsigned char>>> dataArray;
-	std::string name;
 public:
 	DisjointPatternDB(int n, const std::vector<int> &tileGroup);
 public:
 	void compute(int nThreads, int batchSize);
 	void storeToFile(const char *path) const;
 	void readFromFile(const char *path);
-	int getDBValue(PuzzleState state);
+	int getDBValue(PuzzleState state) const;
 private:
 	int getStateIndex(PuzzleState state) const;
 	unsigned int getSearchStateIndex(PuzzleState state) const;

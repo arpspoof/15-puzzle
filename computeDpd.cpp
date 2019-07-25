@@ -14,6 +14,9 @@ using namespace std;
 
 char actionList[] = { 'u', 'd', 'l', 'r' };
 
+static long long searchSize;
+static long long searchProgress;
+
 bool DisjointPatternDB::checkMove(int pos, char dir) const {
 	switch (dir) {
 	case 'u':
@@ -52,7 +55,7 @@ PuzzleState DisjointPatternDB::moveAndCopy(PuzzleState s, int pos, char dir) con
 }
 
 string DisjointPatternDB::getFilePathById(int Id) const {
-	return "tmp/dpd_" + name + "_worker_" + to_string(Id) + string(".tmp.db");
+	return "tmp/dpd_worker_" + to_string(Id) + string(".tmp.db");
 }
 
 unsigned int DisjointPatternDB::getSearchStateIndex(PuzzleState state) const {
@@ -79,7 +82,8 @@ void DisjointPatternDB::bfs_thread(int fileId, int dataId) {
 				if (!checkMove(i, action)) continue;
 				PuzzleState newState = moveAndCopy(state, i, action);
 				unsigned char newCost = (newState.get(i) != dummyTile) + cost;
-				db[getStateIndex(newState)] = newCost;
+				unsigned char oldCost = db[getStateIndex(newState)];
+				db[getStateIndex(newState)] = min(oldCost, newCost);
 				unsigned int newSearchIndex = getSearchStateIndex(newState);
 				if (!searchHash.get(newSearchIndex)) {
 					searchHash.set(newSearchIndex);
@@ -89,6 +93,11 @@ void DisjointPatternDB::bfs_thread(int fileId, int dataId) {
 					}
 					else {
 						o.write((const char *)&newp, sizeof(newp));
+					}
+
+					searchProgress++;
+					if (searchProgress % 10000000 == 0) {
+						printf("compute db process %f%%\n", (double)searchProgress / searchSize * 100.0);
 					}
 				}
 			}
@@ -104,8 +113,10 @@ void DisjointPatternDB::compute(int nThreads, int batchSize) {
 	for (fs::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it) {
 		fs::remove_all(it->path());
 	}
-
-	searchHash = Bitmap(db.size() * (nn - r));
+	
+	searchProgress = nn - r;
+	searchSize = db.size() * (nn - r);
+	searchHash = Bitmap(searchSize);
 
 	PuzzleState rootCommon;
 	for (int i = 0; i < nn; i++) {
@@ -134,11 +145,6 @@ void DisjointPatternDB::compute(int nThreads, int batchSize) {
 	ofstream rootOutput(getFilePathById(0), ios::out | ios::binary);
 	rootOutput.write((const char *)roots.data(), sizePair * roots.size());
 	rootOutput.close();
-
-	for (int i = 1; i < nThreads; i++) {
-		ofstream o(getFilePathById(i), ios::out | ios::binary);
-		o.close();
-	}
 
 	int fileId = 0;
 
@@ -181,7 +187,6 @@ void DisjointPatternDB::compute(int nThreads, int batchSize) {
 					in.read((char *)dataArray[i].data(), elements * sizePair);
 
 					workers[i] = new boost::thread{ [=]() { bfs_thread(fileId + nThreads + i, i); } };
-					printf("launch worker %d, data size = %d, working space = %d\n", i, elements, fileId + nThreads + i);
 				}
 
 				for (int i = 0; i < nWorkers; i++) {

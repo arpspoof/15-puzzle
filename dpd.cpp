@@ -73,6 +73,6 @@ void DisjointPatternDB::readFromFile(const char *path) {
 	f.close();
 }
 
-int DisjointPatternDB::getDBValue(PuzzleState state) {
+int DisjointPatternDB::getDBValue(PuzzleState state) const {
 	return db[getStateIndex(state)];
 }
