@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <unordered_set>
-#include <memory>
+#include <memory.h>
 #include <chrono>
 
 using namespace std;
